@@ -90,7 +90,7 @@ with st.sidebar:
 
 # 7. Main Dashboard Content
 st.markdown('<div class="main-header">Interactive AI Voice Bot</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Built for 100x Stage 1 Assessment • Powered by Gemini 3.8 Flash</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">• Powered by Gemini 3.8 Flash</div>', unsafe_allow_html=True)
 
 # 8. Render Chat History
 for chat in st.session_state.chat_history:
@@ -112,8 +112,10 @@ st.markdown("### 🎙️ Ask Next Question")
 audio_value = st.audio_input("Record your interview question", key=f"mic_{st.session_state.mic_key}")
 
 if audio_value:
-    with st.spinner("🤖 Joysa AI is thinking and generating voice response..."):
+    # Use st.status for live terminal-like updates
+    with st.status("🤖 Jo AI is thinking...", expanded=True) as status:
         try:
+            st.write("☁️ Uploading audio to server...")
             # Get user audio bytes
             user_audio_bytes = audio_value.getvalue()
 
@@ -122,6 +124,7 @@ if audio_value:
                 temp_in.write(user_audio_bytes)
                 temp_in_path = temp_in.name
 
+            st.write("🧠 Analyzing and generating AI text (~30s on free tier)...")
             # Gemini Transcription & Response
             uploaded_file = client.files.upload(file=temp_in_path)
             response = client.models.generate_content(
@@ -130,6 +133,7 @@ if audio_value:
             )
             bot_text = response.text
 
+            st.write("🔊 Synthesizing voice audio...")
             # Voice Generation via gTTS
             tts = gTTS(text=bot_text, lang='en', tld='com')
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_out:
@@ -140,6 +144,7 @@ if audio_value:
             with open(temp_out_path, "rb") as f:
                 bot_audio_bytes = f.read()
 
+            st.write("💾 Saving to chat history...")
             # Save the entire interaction to Session State
             st.session_state.chat_history.append({
                 "user_audio": user_audio_bytes,
@@ -147,9 +152,13 @@ if audio_value:
                 "bot_audio": bot_audio_bytes
             })
 
+            # Mark status as complete!
+            status.update(label="✅ Response Ready!", state="complete", expanded=False)
+
             # Increment the mic key so a fresh recorder appears, then reload the page
             st.session_state.mic_key += 1
             st.rerun()
 
         except Exception as e:
+            status.update(label="❌ Error processing request", state="error")
             st.error(f"Error processing question: {e}")
