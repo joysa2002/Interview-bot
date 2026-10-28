@@ -3,6 +3,7 @@ import tempfile
 import google.generativeai as genai
 import streamlit as st
 from gtts import gTTS
+from PIL import Image
 
 # Configure Streamlit page
 st.set_page_config(page_title="Joysa AI Voice Bot", page_icon="🎙️", layout="centered")
@@ -34,14 +35,18 @@ Maintain this exact personality—approachable, gritty, and technically passiona
 """
 
 # App Layout
-st.title("🎙️ Candidate AI Voice Bot")
+st.title("AI Voice Bot")
 st.subheader("Meet Joysa Anthony D Silva L")
 
-# Avatar
+# avatar safely without crashing
 if os.path.exists("avatar.png"):
-    st.image("avatar.png", width=250, caption="Joysa's Anime Avatar (Limit Breaker Mode!)")
+    try:
+        img = Image.open("avatar.png")
+        st.image(img, width=250, caption="Joysa's Anime Avatar (Limit Breaker Mode!)")
+    except Exception:
+        st.warning("⚠️ 'avatar.png' file format is invalid. Please re-upload a valid PNG/JPG image to GitHub.")
 else:
-    st.info("💡 Protip: Add 'avatar.png' to your GitHub to see your customized avatar!")
+    st.info("💡 Add 'avatar.png' to your GitHub repository to display your avatar!")
 
 st.write("Click the microphone below, record an interview question, and listen to my response!")
 
