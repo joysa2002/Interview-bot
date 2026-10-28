@@ -5,58 +5,119 @@ from google import genai
 from gtts import gTTS
 from PIL import Image
 
-# 1. Page Configuration
+# 1. Page Config
 st.set_page_config(
-    page_title="AI Voice Bot",
-    page_icon="🎙️",
+    page_title="Jo AI | AI Clone",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# 2. Custom CSS for Dark Theme UI
+# 2. Gen Z Cyberpunk Glassmorphism Styling
 st.markdown("""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+    
+    * {
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Main background */
     .stApp {
-        background-color: #0b0f19;
+        background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #090d16 100%);
         color: #f3f4f6;
     }
+    
+    /* Sidebar styling */
     [data-testid="stSidebar"] {
-        background-color: #111827;
-        border-right: 1px solid #1f2937;
+        background: rgba(15, 23, 42, 0.8) !important;
+        backdrop-filter: blur(12px);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
+    
+    /* Profile Glassmorphism Card */
     .profile-card {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        border: 1px solid #3b82f6;
-        border-radius: 12px;
-        padding: 12px;
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid rgba(99, 102, 241, 0.4);
+        border-radius: 16px;
+        padding: 16px;
         text-align: center;
-        margin-bottom: 15px;
-        box-shadow: 0 4px 14px rgba(59, 130, 246, 0.25);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        backdrop-filter: blur(8px);
+        margin-bottom: 20px;
     }
+    
     .profile-name {
         color: #ffffff;
-        font-weight: 700;
-        font-size: 18px;
+        font-weight: 800;
+        font-size: 20px;
+        letter-spacing: -0.5px;
     }
+    
     .profile-title {
-        color: #93c5fd;
+        color: #818cf8;
         font-size: 13px;
+        font-weight: 600;
         margin-top: 4px;
     }
-    .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
+    
+    .badge {
+        display: inline-block;
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(52, 211, 153, 0.3);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-top: 10px;
     }
+
+    /* Trait Chips */
+    .chip-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 12px;
+        justify-content: center;
+    }
+    .chip {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #cbd5e1;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 11px;
+    }
+
+    /* Custom Header */
+    .main-header {
+        font-size: 2.2rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #818cf8 0%, #c084fc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 5px;
+    }
+    
+    .sub-header {
+        color: #94a3b8;
+        font-size: 1rem;
+        margin-bottom: 25px;
+    }
+    
+    /* Hide Streamlit footer branding */
+    footer {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
 
 # 3. Read API Key
 api_key = st.secrets.get("GEMINI_API_KEY") or os.environ.get("GEMINI_API_KEY")
 if not api_key:
-    st.error("Missing GEMINI_API_KEY! Please add it to Streamlit Secrets.")
+    st.error("⚠️ Missing GEMINI_API_KEY! Please check Streamlit Secrets.")
     st.stop()
 
-# Initialize Client with the new SDK
+# Initialize Client
 client = genai.Client(api_key=api_key)
 
 # 4. Persona System Prompt
@@ -77,12 +138,18 @@ Use these facts to answer as Joysa:
 Maintain this exact personality—approachable, gritty, and technically passionate—in your responses.
 """
 
-# 5. Sidebar Layout
+# 5. Sidebar Layout (Sidebar profile card)
 with st.sidebar:
     st.markdown("""
         <div class="profile-card">
             <div class="profile-name">Joysa Anthony D Silva L</div>
-            <div class="profile-title">B.Tech IT Graduate & AI Aspirant</div>
+            <div class="profile-title">B.Tech IT | AI Engineer Applicant</div>
+            <div class="badge">🟢 READY TO INTERVIEW</div>
+            <div class="chip-container">
+                <span class="chip">DSA Core</span>
+                <span class="chip">Grit Mode</span>
+                <span class="chip">Agent Architecture</span>
+            </div>
         </div>
     """, unsafe_allow_html=True)
     
@@ -91,51 +158,57 @@ with st.sidebar:
             img = Image.open("avatar.png")
             st.image(img, use_container_width=True)
         except Exception:
-            st.warning("⚠️ Re-upload avatar.png as a standard PNG image.")
+            st.warning("⚠️ Re-upload avatar.png as a standard PNG file.")
     else:
-        st.info("💡 Add 'avatar.png' to GitHub to render your avatar here!")
+        st.info("💡 Add 'avatar.png' to GitHub to show avatar.")
 
-# 6. Main Content Area
-st.title("🎙️AI Voice Bot - Joysa Anthony D Silva L")
-st.write("Record an interview question below to receive a live text and voice response.")
+# 6. Main Dashboard Content
+st.markdown('<div class="main-header">Interactive AI Voice Bot</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Built for 100x Stage 1 Assessment • Powered by Gemini 1.5 Flash</div>', unsafe_allow_html=True)
 
-st.divider()
+# Voice Recording Station
+st.markdown("### 🎙️ Spoken Question Station")
+st.caption("Click **Record**, ask your question, and watch the visual wave lines move to confirm your mic is capturing sound.")
 
-# Microphone Input Container
-st.markdown("### 💬 Ask a Question")
-audio_value = st.audio_input("Record your question")
+audio_value = st.audio_input("Record your interview question")
 
 if audio_value:
-    with st.spinner("Processing audio & generating response..."):
+    # Diagnostic playback so you can hear your input
+    st.markdown("#### 🎧 Recorded Audio Feedback:")
+    st.audio(audio_value, format="audio/wav")
+
+    with st.spinner("🤖 Jo AI is thinking and generating voice response..."):
         try:
-            # Save audio locally
+            # Save audio input temporarily
             with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_in:
                 temp_in.write(audio_value.read())
                 temp_in_path = temp_in.name
 
-            # Process audio via new google-genai SDK
+            # Gemini Transcription & Generative Text using gemini-1.5-flash
             uploaded_file = client.files.upload(file=temp_in_path)
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-1.5-flash",
                 contents=[SYSTEM_PROMPT, uploaded_file]
             )
             bot_text = response.text
 
-            # Voice Generation via gTTS
+            # Convert response text to audio via gTTS
             tts = gTTS(text=bot_text, lang='en', tld='com')
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_out:
                 tts.save(temp_out.name)
                 temp_out_path = temp_out.name
 
-            # Response Transcript
-            st.markdown("### 🤖 Response Transcript")
+            st.divider()
+
+            # AI Avatar Chat Bubble
+            st.markdown("### 🤖 Transcript Response")
             avatar_path = "avatar.png" if os.path.exists("avatar.png") else None
             
             with st.chat_message("assistant", avatar=avatar_path):
                 st.write(bot_text)
 
-            # Audio Player
-            st.markdown("### 🔊 My Spoken Response")
+            # Voice Playback
+            st.markdown("### 🔊 Spoken Audio Answer")
             st.audio(temp_out_path, format="audio/mp3", autoplay=True)
 
         except Exception as e:
