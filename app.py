@@ -164,7 +164,7 @@ with st.sidebar:
 
 # 6. Main Dashboard Content
 st.markdown('<div class="main-header">Interactive AI Voice Bot</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Built for 100x Stage 1 Assessment • Powered by Gemini 1.5 Flash</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">• Powered by Gemini 1.5 Flash</div>', unsafe_allow_html=True)
 
 # Voice Recording Station
 st.markdown("### 🎙️ Spoken Question Station")
