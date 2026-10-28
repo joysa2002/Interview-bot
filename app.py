@@ -181,7 +181,7 @@ if audio_value:
             # Gemini Transcription & Generative Text using gemini-1.5-flash
             uploaded_file = client.files.upload(file=temp_in_path)
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-3.8-flash",
                 contents=[SYSTEM_PROMPT, uploaded_file]
             )
             bot_text = response.text
