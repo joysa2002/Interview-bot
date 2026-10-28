@@ -1,11 +1,11 @@
 import os
 import tempfile
-import google.generativeai as genai
 import streamlit as st
+from google import genai
 from gtts import gTTS
 from PIL import Image
 
-# 1. Page Configuration (Wide layout)
+# 1. Page Configuration
 st.set_page_config(
     page_title="AI Voice Bot",
     page_icon="🎙️",
@@ -13,22 +13,17 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. Custom CSS for Sleek Dark Theme UI
+# 2. Custom CSS for Dark Theme UI
 st.markdown("""
     <style>
-    /* Dark theme background */
     .stApp {
         background-color: #0b0f19;
         color: #f3f4f6;
     }
-    
-    /* Sidebar Styling */
     [data-testid="stSidebar"] {
         background-color: #111827;
         border-right: 1px solid #1f2937;
     }
-    
-    /* Avatar Title Card */
     .profile-card {
         background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
         border: 1px solid #3b82f6;
@@ -48,8 +43,6 @@ st.markdown("""
         font-size: 13px;
         margin-top: 4px;
     }
-    
-    /* Adjust spacing */
     .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
@@ -63,7 +56,8 @@ if not api_key:
     st.error("Missing GEMINI_API_KEY! Please add it to Streamlit Secrets.")
     st.stop()
 
-genai.configure(api_key=api_key)
+# Initialize Client with the new SDK
+client = genai.Client(api_key=api_key)
 
 # 4. Persona System Prompt
 SYSTEM_PROMPT = """
@@ -83,7 +77,7 @@ Use these facts to answer as Joysa:
 Maintain this exact personality—approachable, gritty, and technically passionate—in your responses.
 """
 
-# 5. Sidebar Layout (Avatar + Badge)
+# 5. Sidebar Layout
 with st.sidebar:
     st.markdown("""
         <div class="profile-card">
@@ -114,31 +108,33 @@ audio_value = st.audio_input("Record your question")
 if audio_value:
     with st.spinner("Processing audio & generating response..."):
         try:
-            # Save user audio
+            # Save audio locally
             with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_in:
                 temp_in.write(audio_value.read())
                 temp_in_path = temp_in.name
 
-            # Gemini Transcription & Generative Text
-            audio_file = genai.upload_file(temp_in_path)
-            model = genai.GenerativeModel("gemini-1.5-flash")
-            response = model.generate_content([SYSTEM_PROMPT, audio_file])
+            # Process audio via new google-genai SDK
+            uploaded_file = client.files.upload(file=temp_in_path)
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[SYSTEM_PROMPT, uploaded_file]
+            )
             bot_text = response.text
 
-            # Voice Generation
+            # Voice Generation via gTTS
             tts = gTTS(text=bot_text, lang='en', tld='com')
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_out:
                 tts.save(temp_out.name)
                 temp_out_path = temp_out.name
 
-            # Response Bubble
+            # Response Transcript
             st.markdown("### 🤖 Response Transcript")
             avatar_path = "avatar.png" if os.path.exists("avatar.png") else None
             
             with st.chat_message("assistant", avatar=avatar_path):
                 st.write(bot_text)
 
-            # Audio Player Container
+            # Audio Player
             st.markdown("### 🔊 My Spoken Response")
             st.audio(temp_out_path, format="audio/mp3", autoplay=True)
 
