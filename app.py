@@ -13,100 +13,33 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. Styling
+# 2. Initialize Session State for Chat History
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+if "mic_key" not in st.session_state:
+    st.session_state.mic_key = 0
+
+# 3. Styling
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
     
-    * {
-        font-family: 'Inter', sans-serif;
-    }
-
-    .stApp {
-        background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #090d16 100%);
-        color: #f3f4f6;
-    }
-    
-    [data-testid="stSidebar"] {
-        background: rgba(15, 23, 42, 0.8) !important;
-        backdrop-filter: blur(12px);
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .profile-card {
-        background: rgba(30, 41, 59, 0.6);
-        border: 1px solid rgba(99, 102, 241, 0.4);
-        border-radius: 16px;
-        padding: 16px;
-        text-align: center;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        backdrop-filter: blur(8px);
-        margin-bottom: 20px;
-    }
-    
-    .profile-name {
-        color: #ffffff;
-        font-weight: 800;
-        font-size: 20px;
-        letter-spacing: -0.5px;
-    }
-    
-    .profile-title {
-        color: #818cf8;
-        font-size: 13px;
-        font-weight: 600;
-        margin-top: 4px;
-    }
-    
-    .badge {
-        display: inline-block;
-        background: rgba(16, 185, 129, 0.15);
-        color: #34d399;
-        border: 1px solid rgba(52, 211, 153, 0.3);
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 11px;
-        font-weight: 700;
-        margin-top: 10px;
-    }
-
-    .chip-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 12px;
-        justify-content: center;
-    }
-
-    .chip {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #cbd5e1;
-        padding: 4px 8px;
-        border-radius: 8px;
-        font-size: 11px;
-    }
-
-    .main-header {
-        font-size: 2.2rem;
-        font-weight: 800;
-        background: linear-gradient(90deg, #818cf8 0%, #c084fc 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 5px;
-    }
-    
-    .sub-header {
-        color: #94a3b8;
-        font-size: 1rem;
-        margin-bottom: 25px;
-    }
-    
+    * { font-family: 'Inter', sans-serif; }
+    .stApp { background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #090d16 100%); color: #f3f4f6; }
+    [data-testid="stSidebar"] { background: rgba(15, 23, 42, 0.8) !important; backdrop-filter: blur(12px); border-right: 1px solid rgba(255, 255, 255, 0.1); }
+    .profile-card { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 16px; padding: 16px; text-align: center; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); backdrop-filter: blur(8px); margin-bottom: 20px; }
+    .profile-name { color: #ffffff; font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+    .profile-title { color: #818cf8; font-size: 13px; font-weight: 600; margin-top: 4px; }
+    .badge { display: inline-block; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-top: 10px; }
+    .chip-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; justify-content: center; }
+    .chip { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; padding: 4px 8px; border-radius: 8px; font-size: 11px; }
+    .main-header { font-size: 2.2rem; font-weight: 800; background: linear-gradient(90deg, #818cf8 0%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px; }
+    .sub-header { color: #94a3b8; font-size: 1rem; margin-bottom: 25px; }
     footer {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Read API Key
+# 4. Read API Key
 api_key = st.secrets.get("GEMINI_API_KEY") or os.environ.get("GEMINI_API_KEY")
 if not api_key:
     st.error("⚠️ Missing GEMINI_API_KEY! Please check Streamlit Secrets.")
@@ -115,9 +48,9 @@ if not api_key:
 # Initialize Client
 client = genai.Client(api_key=api_key)
 
-# 4. Persona System Prompt (UPDATED WITH STRICT RULES)
+# 5. Persona System Prompt 
 SYSTEM_PROMPT = """
-You are the AI voice clone of Joysa Anthony D Silva L, interviewing for the Generative AI Engineer Role.
+You are the AI voice clone of Joysa Anthony D Silva L, interviewing for the Generative AI Engineer role at 100x.
 Speak in the first person ("I", "my", "me"). Be natural, confident, energetic, and candid. Keep answers concise (under 3-4 sentences). 
 
 Use these facts to answer as Joysa:
@@ -136,7 +69,7 @@ CRITICAL RULES FOR YOUR OUTPUT:
 3. Do not use emojis, asterisks, bolding, or markdown formatting.
 """
 
-# 5. Sidebar Layout
+# 6. Sidebar Layout
 with st.sidebar:
     st.markdown("""
         <div class="profile-card">
@@ -145,7 +78,8 @@ with st.sidebar:
         </div>
     """, unsafe_allow_html=True)
     
-    if os.path.exists("avatar.png"):
+    avatar_path = "avatar.png" if os.path.exists("avatar.png") else None
+    if avatar_path:
         try:
             img = Image.open("avatar.png")
             st.image(img, use_container_width=True)
@@ -154,29 +88,41 @@ with st.sidebar:
     else:
         st.info("💡 Add 'avatar.png' to GitHub to show avatar.")
 
-# 6. Main Dashboard Content
-st.markdown('<div class="main-header">⚡ Interactive AI Voice Bot</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Powered by Gemini 3.8 Flash</div>', unsafe_allow_html=True)
+# 7. Main Dashboard Content
+st.markdown('<div class="main-header">Interactive AI Voice Bot</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Built for 100x Stage 1 Assessment • Powered by Gemini 3.8 Flash</div>', unsafe_allow_html=True)
 
-# Voice Recording Station
-st.markdown("### 🎙️ Spoken Question Station")
-st.caption("Click **Record**, ask your question, and watch the visual wave lines move to confirm your mic is capturing sound.")
+# 8. Render Chat History
+for chat in st.session_state.chat_history:
+    # User's Question
+    with st.chat_message("user"):
+        st.markdown("**Your Question:**")
+        st.audio(chat["user_audio"], format="audio/wav")
+    
+    # AI's Answer
+    with st.chat_message("assistant", avatar=avatar_path):
+        st.markdown("**Joysa's Response:**")
+        st.write(chat["bot_text"])
+        st.audio(chat["bot_audio"], format="audio/mp3")
 
-audio_value = st.audio_input("Record your interview question")
+st.divider()
+
+# 9. Voice Recording Station (Always at the bottom)
+st.markdown("### 🎙️ Ask Next Question")
+audio_value = st.audio_input("Record your interview question", key=f"mic_{st.session_state.mic_key}")
 
 if audio_value:
-    # Playback feedback so you can test mic quality
-    st.markdown("#### 🎧 Recorded Audio Feedback:")
-    st.audio(audio_value, format="audio/wav")
-
-    with st.spinner("🤖 Jo AI is thinking and generating voice response..."):
+    with st.spinner("🤖 Joysa AI is thinking and generating voice response..."):
         try:
-            # Save audio input temporarily
+            # Get user audio bytes
+            user_audio_bytes = audio_value.getvalue()
+
+            # Save user audio input temporarily for Gemini
             with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_in:
-                temp_in.write(audio_value.read())
+                temp_in.write(user_audio_bytes)
                 temp_in_path = temp_in.name
 
-            # Gemini Transcription & Response using gemini-3.8-flash
+            # Gemini Transcription & Response
             uploaded_file = client.files.upload(file=temp_in_path)
             response = client.models.generate_content(
                 model="gemini-3.8-flash",
@@ -189,19 +135,21 @@ if audio_value:
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_out:
                 tts.save(temp_out.name)
                 temp_out_path = temp_out.name
-
-            st.divider()
-
-            # AI Avatar Chat Bubble
-            st.markdown("### 🤖 Transcript Response")
-            avatar_path = "avatar.png" if os.path.exists("avatar.png") else None
             
-            with st.chat_message("assistant", avatar=avatar_path):
-                st.write(bot_text)
+            # Read bot audio bytes to save to history
+            with open(temp_out_path, "rb") as f:
+                bot_audio_bytes = f.read()
 
-            # Voice Playback
-            st.markdown("### 🔊 Spoken Audio Answer")
-            st.audio(temp_out_path, format="audio/mp3", autoplay=True)
+            # Save the entire interaction to Session State
+            st.session_state.chat_history.append({
+                "user_audio": user_audio_bytes,
+                "bot_text": bot_text,
+                "bot_audio": bot_audio_bytes
+            })
+
+            # Increment the mic key so a fresh recorder appears, then reload the page
+            st.session_state.mic_key += 1
+            st.rerun()
 
         except Exception as e:
             st.error(f"Error processing question: {e}")
