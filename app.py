@@ -144,12 +144,6 @@ with st.sidebar:
         <div class="profile-card">
             <div class="profile-name">Joysa Anthony D Silva L</div>
             <div class="profile-title">B.Tech IT | AI Engineer Applicant</div>
-            <div class="badge">🟢 READY TO INTERVIEW</div>
-            <div class="chip-container">
-                <span class="chip">DSA Core</span>
-                <span class="chip">Grit Mode</span>
-                <span class="chip">Agent Architecture</span>
-            </div>
         </div>
     """, unsafe_allow_html=True)
     
@@ -187,7 +181,7 @@ if audio_value:
             # Gemini Transcription & Generative Text using gemini-1.5-flash
             uploaded_file = client.files.upload(file=temp_in_path)
             response = client.models.generate_content(
-                model="gemini-1.5-flash",
+                model="gemini-2.0-flash",
                 contents=[SYSTEM_PROMPT, uploaded_file]
             )
             bot_text = response.text
